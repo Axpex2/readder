@@ -108,23 +108,6 @@
             font-weight: bold;
             color: white;
         }
-
-        .img-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            align-items: center;
-            justify-content: center;
-        }
-
-        .img-modal img {
-            max-width: 90%;
-            max-height: 90%;
-        }
     </style>
 </head>
 <body>
@@ -179,7 +162,9 @@
             const text = input.value.trim();
             if (!text) return;
 
-            socket.send(JSON.stringify({ type: "message", text, user: username }));
+            const messageData = { type: "message", text: text, user: username };
+            socket.send(JSON.stringify(messageData));
+
             addMessage(username, text, true);
             input.value = "";
         }
