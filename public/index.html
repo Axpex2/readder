@@ -5,43 +5,134 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Чат на WebSocket</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        #chat { width: 300px; height: 400px; overflow-y: auto; border: 1px solid #000; padding: 10px; margin: 0 auto; }
-        #message { width: 80%; }
+        /* Загальні стилі */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #343541; /* Темний фон */
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        /* Чат */
+        #chat {
+            width: 90%;
+            max-width: 400px;
+            height: 400px;
+            overflow-y: auto;
+            background: #444654; /* Темний блок */
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            border: 1px solid #565869;
+        }
+
+        /* Повідомлення */
+        .message {
+            max-width: 75%;
+            padding: 8px 12px;
+            border-radius: 10px;
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: #10a37f; /* Колір повідомлення користувача */
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message.bot {
+            align-self: flex-start;
+            background: #4e4f58; /* Колір відповіді бота */
+            color: white;
+            border-bottom-left-radius: 2px;
+        }
+
+        /* Введення повідомлення */
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            background: #565869;
+            color: white;
+            outline: none;
+        }
+
+        button {
+            padding: 10px 15px;
+            background: #10a37f;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+        }
+
+        button:hover {
+            background: #0d8a6b;
+        }
     </style>
 </head>
 <body>
 
-    <h2>Онлайн-чат</h2>
+    <h2>💬 Онлайн-чат</h2>
     <div id="chat"></div>
-    <input type="text" id="message" placeholder="Напишіть повідомлення..." />
-    <button onclick="sendMessage()">Відправити</button>
+    
+    <div class="input-container">
+        <input type="text" id="message" placeholder="Напишіть повідомлення..." />
+        <button onclick="sendMessage()">➤</button>
+    </div>
 
     <script>
         const socket = new WebSocket('wss://readder-kwcz.onrender.com');
 
         socket.onmessage = async function(event) {
-            const chat = document.getElementById('chat');
-
-            // Перевіряємо, чи повідомлення у форматі Blob
             if (event.data instanceof Blob) {
-                event.data.text().then(text => addMessage(text));
+                event.data.text().then(text => addMessage(text, 'bot'));
             } else {
-                addMessage(event.data);
+                addMessage(event.data, 'bot');
             }
         };
 
         function sendMessage() {
             const input = document.getElementById('message');
             if (input.value.trim()) {
+                addMessage(input.value, 'user');
                 socket.send(input.value);
                 input.value = '';
             }
         }
 
-        function addMessage(text) {
+        function addMessage(text, sender) {
             const chat = document.getElementById('chat');
-            chat.innerHTML += `<p>${text}</p>`;
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender);
+            messageDiv.textContent = text;
+            chat.appendChild(messageDiv);
             chat.scrollTop = chat.scrollHeight;
         }
     </script>
