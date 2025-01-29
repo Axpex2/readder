@@ -26,7 +26,7 @@ wss.on("connection", (ws) => {
             } else if (data.type === "message") {
                 broadcast({ type: "message", user: users.get(ws), text: data.text });
             } else if (data.type === "image") {
-                broadcast({ type: "image", user: users.get(ws), image: data.image });
+                broadcast({ type: "image", user: users.get(ws), text: data.text });
             }
         } catch (e) {
             console.error("Помилка у повідомленні:", e);
@@ -54,5 +54,5 @@ function broadcastUsers() {
 }
 
 server.listen(port, () => {
-    console.log(`Сервер WebSocket та HTTP працює на порту ${port}`);
+    console.log(`Сервер WebSocket працює на порту ${port}`);
 });
