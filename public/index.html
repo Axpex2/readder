@@ -75,19 +75,6 @@
             border-bottom-left-radius: 2px;
         }
 
-        .message .sender {
-            font-size: 12px;
-            font-weight: bold;
-            opacity: 0.8;
-        }
-
-        .message .time {
-            font-size: 10px;
-            text-align: right;
-            opacity: 0.7;
-            margin-top: 3px;
-        }
-
         .chat-img {
             max-width: 80px;
             cursor: pointer;
@@ -155,8 +142,6 @@
         <div class="input-container">
             <input type="text" id="message" placeholder="Напишіть повідомлення...">
             <button onclick="sendMessage()">📩</button>
-            <input type="file" id="imageInput" accept="image/*" style="display: none;">
-            <button onclick="document.getElementById('imageInput').click()">📷</button>
         </div>
     </div>
 
@@ -194,7 +179,7 @@
             const text = input.value.trim();
             if (!text) return;
 
-            socket.send(JSON.stringify({ type: "message", text }));
+            socket.send(JSON.stringify({ type: "message", text, user: username }));
             addMessage(username, text, true);
             input.value = "";
         }
