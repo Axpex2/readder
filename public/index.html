@@ -4,121 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Чат на WebSocket</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #222;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 450px;
-            background: #333;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-        }
-
-        #chat-container {
-            display: none;
-            flex-direction: column;
-        }
-
-        #online-users {
-            background: #444;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        #chat {
-            height: 350px;
-            overflow-y: auto;
-            background: #2a2a2a;
-            border-radius: 10px;
-            padding: 10px;
-            margin: 10px 0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .message {
-            max-width: 75%;
-            padding: 8px 12px;
-            border-radius: 10px;
-            word-wrap: break-word;
-            font-size: 14px;
-            line-height: 1.4;
-            margin-bottom: 5px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .my-message {
-            align-self: flex-end;
-            background: #0f7b6c;
-            color: white;
-            border-bottom-right-radius: 2px;
-            text-align: right;
-        }
-
-        .other-message {
-            align-self: flex-start;
-            background: #3c3f42;
-            color: white;
-            border-bottom-left-radius: 2px;
-        }
-
-        .chat-img {
-            max-width: 80px;
-            cursor: pointer;
-            transition: 0.3s;
-            border-radius: 5px;
-        }
-
-        .input-container {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        input {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            font-size: 14px;
-            background: #565869;
-            color: white;
-            outline: none;
-        }
-
-        button {
-            padding: 10px;
-            background: #10a37f;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            color: white;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div id="login-container" class="container">
+    <div id="login-container">
         <h2>Введіть ваш нік</h2>
         <input type="text" id="nickname" placeholder="Ваш нік">
         <button onclick="setUsername()">Увійти</button>
     </div>
 
-    <div id="chat-container" class="container">
+    <div id="chat-container">
         <h2>💬 Чат</h2>
         <div id="online-users"><strong>🟢 Онлайн:</strong> <span id="users-list">Немає користувачів</span></div>
         <div id="chat"></div>
@@ -128,54 +24,7 @@
         </div>
     </div>
 
-    <script>
-        let socket;
-        let username = "";
-
-        function setUsername() {
-            const input = document.getElementById('nickname');
-            username = input.value.trim();
-            if (!username) return alert("Введіть ім'я!");
-
-            document.getElementById("login-container").style.display = "none";
-            document.getElementById("chat-container").style.display = "flex";
-
-            socket = new WebSocket("wss://your-server-url.com"); // ЗАМІНИ НА СВІЙ URL
-
-            socket.onopen = () => {
-                socket.send(JSON.stringify({ type: "connect", user: username }));
-            };
-
-            socket.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-
-                if (data.type === "users") {
-                    document.getElementById("users-list").innerHTML = data.users.join(", ");
-                } else if (data.type === "message") {
-                    addMessage(data.user, data.text);
-                }
-            };
-        }
-
-        function sendMessage() {
-            const input = document.getElementById("message");
-            const text = input.value.trim();
-            if (!text) return;
-
-            socket.send(JSON.stringify({ type: "message", text: text, user: username }));
-            addMessage(username, text, true);
-            input.value = "";
-        }
-
-        function addMessage(user, text, isSelf = false) {
-            const chat = document.getElementById("chat");
-            const div = document.createElement("div");
-            div.classList.add("message", isSelf ? "my-message" : "other-message");
-            div.innerHTML = `<b>${user}:</b> ${text}`;
-            chat.appendChild(div);
-            chat.scrollTop = chat.scrollHeight;
-        }
-    </script>
+    <script src="script.js"></script>
 
 </body>
 </html>
