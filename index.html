@@ -18,7 +18,9 @@
     <button onclick="sendMessage()">Відправити</button>
 
     <script>
-        const socket = new WebSocket('wss://readder-kwcz.onrender.com');
+        const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+        const wsHost = window.location.host; // автоматично визначає хост
+        const socket = new WebSocket(`${wsProtocol}://${wsHost}`);
 
         socket.onmessage = function(event) {
             const chat = document.getElementById('chat');
