@@ -8,7 +8,7 @@
         /* Загальні стилі */
         body {
             font-family: Arial, sans-serif;
-            background-color: #343541; /* Темний фон */
+            background-color: #343541;
             color: #ffffff;
             display: flex;
             flex-direction: column;
@@ -23,13 +23,54 @@
             font-size: 24px;
         }
 
+        /* Вікно входу */
+        #login {
+            background: #444654;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        input {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            background: #565869;
+            color: white;
+            outline: none;
+            width: 200px;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 15px;
+            background: #10a37f;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #0d8a6b;
+        }
+
         /* Чат */
+        #chat-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
         #chat {
             width: 90%;
             max-width: 400px;
             height: 400px;
             overflow-y: auto;
-            background: #444654; /* Темний блок */
+            background: #444654;
             border-radius: 10px;
             padding: 15px;
             display: flex;
@@ -46,20 +87,44 @@
             word-wrap: break-word;
             font-size: 14px;
             line-height: 1.4;
+            opacity: 0;
+            animation: fadeIn 0.3s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .message.user {
             align-self: flex-end;
-            background: #10a37f; /* Колір повідомлення користувача */
+            background: #10a37f;
             color: white;
             border-bottom-right-radius: 2px;
         }
 
-        .message.bot {
+        .message.other {
             align-self: flex-start;
-            background: #4e4f58; /* Колір відповіді бота */
+            background: #4e4f58;
             color: white;
             border-bottom-left-radius: 2px;
+        }
+
+        /* Ім'я відправника */
+        .message .sender {
+            font-size: 12px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 3px;
+            opacity: 0.8;
+        }
+
+        /* Час */
+        .message .time {
+            font-size: 10px;
+            text-align: right;
+            opacity: 0.7;
+            margin-top: 3px;
         }
 
         /* Введення повідомлення */
@@ -71,67 +136,100 @@
             max-width: 400px;
         }
 
-        input {
+        #message {
             flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            font-size: 14px;
-            background: #565869;
-            color: white;
-            outline: none;
-        }
-
-        button {
-            padding: 10px 15px;
-            background: #10a37f;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            color: white;
-        }
-
-        button:hover {
-            background: #0d8a6b;
         }
     </style>
 </head>
 <body>
 
-    <h2>💬 Онлайн-чат</h2>
-    <div id="chat"></div>
-    
-    <div class="input-container">
-        <input type="text" id="message" placeholder="Напишіть повідомлення..." />
-        <button onclick="sendMessage()">➤</button>
+    <!-- Вікно входу -->
+    <div id="login">
+        <h2>Введіть ваш нікнейм</h2>
+        <input type="text" id="nickname" placeholder="Ваш нікнейм" />
+        <button onclick="setUsername()">Увійти</button>
+    </div>
+
+    <!-- Чат -->
+    <div id="chat-container">
+        <h2>💬 Онлайн-чат</h2>
+        <div id="chat"></div>
+        
+        <div class="input-container">
+            <input type="text" id="message" placeholder="Напишіть повідомлення..." />
+            <button onclick="sendMessage()">➤</button>
+        </div>
     </div>
 
     <script>
         const socket = new WebSocket('wss://readder-kwcz.onrender.com');
+        let username = "";
+        let userId = Math.random().toString(36).substr(2, 9); // Генеруємо унікальний ID
+
+        function setUsername() {
+            const input = document.getElementById('nickname');
+            if (input.value.trim()) {
+                username = input.value.trim();
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('chat-container').style.display = 'flex';
+
+                // Отримуємо IP-адресу користувача
+                fetch('https://api64.ipify.org?format=json')
+                    .then(response => response.json())
+                    .then(data => {
+                        const userIP = data.ip;
+                        console.log(`Ваш IP: ${userIP}`);
+                    })
+                    .catch(error => console.error("Помилка отримання IP:", error));
+            }
+        }
 
         socket.onmessage = async function(event) {
+            let data;
             if (event.data instanceof Blob) {
-                event.data.text().then(text => addMessage(text, 'bot'));
+                data = await event.data.text();
             } else {
-                addMessage(event.data, 'bot');
+                data = event.data;
+            }
+
+            try {
+                const messageObj = JSON.parse(data);
+                const senderId = messageObj.senderId;
+                const senderName = messageObj.username;
+                const messageText = messageObj.text;
+                const time = messageObj.time;
+
+                const senderType = senderId === userId ? "user" : "other";
+                addMessage(messageText, senderType, senderName, time);
+            } catch (e) {
+                console.error("Помилка обробки повідомлення:", e);
             }
         };
 
         function sendMessage() {
             const input = document.getElementById('message');
             if (input.value.trim()) {
-                addMessage(input.value, 'user');
-                socket.send(input.value);
+                const messageObj = { 
+                    senderId: userId, 
+                    username: username, 
+                    text: input.value,
+                    time: new Date().toLocaleTimeString() 
+                };
+                socket.send(JSON.stringify(messageObj));
+                addMessage(input.value, "user", username, messageObj.time);
                 input.value = '';
             }
         }
 
-        function addMessage(text, sender) {
+        function addMessage(text, sender, senderName, time) {
             const chat = document.getElementById('chat');
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message', sender);
-            messageDiv.textContent = text;
+            messageDiv.innerHTML = `
+                <span class="sender">${senderName}</span>
+                ${text}
+                <div class="time">${time}</div>
+            `;
             chat.appendChild(messageDiv);
             chat.scrollTop = chat.scrollHeight;
         }
