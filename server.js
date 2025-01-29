@@ -19,4 +19,4 @@ server.on('connection', socket => {
     });
 });
 
-console.log('Сервер WebSocket запущено на ws://localhost:3000');
+console.log('Сервер WebSocket запущено на https://readder-ft6b.onrender.com/');
