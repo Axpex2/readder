@@ -18,13 +18,20 @@
     <button onclick="sendMessage()">Відправити</button>
 
     <script>
-        const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-        const wsHost = window.location.host; // автоматично визначає хост
-        const socket = new WebSocket(`${wsProtocol}://${wsHost}`);
+        const socket = new WebSocket('wss://readder-kwcz.onrender.com');
 
-        socket.onmessage = function(event) {
+        socket.onmessage = async function(event) {
             const chat = document.getElementById('chat');
-            chat.innerHTML += `<p>${event.data}</p>`;
+
+            // Перевіряємо, чи повідомлення у вигляді Blob
+            if (event.data instanceof Blob) {
+                event.data.text().then(text => {
+                    chat.innerHTML += `<p>${text}</p>`;
+                });
+            } else {
+                chat.innerHTML += `<p>${event.data}</p>`;
+            }
+
             chat.scrollTop = chat.scrollHeight;
         };
 
