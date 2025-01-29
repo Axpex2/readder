@@ -8,12 +8,12 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 const port = process.env.PORT || 10000;
 
-let users = new Map();
+let users = new Map(); // Зберігає активних користувачів
 
-// Додаємо підтримку статичних файлів з папки public
+// Налаштовуємо папку для статичних файлів
 app.use(express.static(path.join(__dirname, "public")));
 
-// Віддаємо index.html при запиті "/"
+// Головна сторінка
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
