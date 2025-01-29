@@ -1,7 +1,6 @@
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
-const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
@@ -10,10 +9,8 @@ const port = process.env.PORT || 10000;
 
 let users = new Map();
 
-app.use(express.static(path.join(__dirname, "public")));
-
 wss.on("connection", (ws) => {
-    console.log("Новий користувач підключився.");
+    console.log("🔵 Новий користувач підключився.");
 
     ws.on("message", (message) => {
         try {
@@ -21,7 +18,7 @@ wss.on("connection", (ws) => {
 
             if (data.type === "connect") {
                 users.set(ws, data.user);
-                console.log(`${data.user} приєднався`);
+                console.log(`🟢 ${data.user} приєднався`);
                 broadcastUsers();
             } else if (data.type === "message") {
                 broadcast({ type: "message", user: users.get(ws), text: data.text });
@@ -29,12 +26,12 @@ wss.on("connection", (ws) => {
                 broadcast({ type: "image", user: users.get(ws), text: data.text });
             }
         } catch (e) {
-            console.error("Помилка у повідомленні:", e);
+            console.error("❌ Помилка у повідомленні:", e);
         }
     });
 
     ws.on("close", () => {
-        console.log(`${users.get(ws)} відключився`);
+        console.log(`🔴 ${users.get(ws)} відключився`);
         users.delete(ws);
         broadcastUsers();
     });
@@ -54,5 +51,5 @@ function broadcastUsers() {
 }
 
 server.listen(port, () => {
-    console.log(`Сервер WebSocket працює на порту ${port}`);
+    console.log(`🚀 Сервер WebSocket працює на порту ${port}`);
 });
