@@ -7,21 +7,14 @@
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background: #f4f4f4; margin: 0; padding: 0; }
         .container { max-width: 400px; margin: 20px auto; background: white; padding: 10px; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); }
-        
-        /* Стилі для чату */
         #chat { height: 300px; overflow-y: auto; border-bottom: 1px solid #ddd; padding: 10px; text-align: left; }
         .message { padding: 5px 10px; margin: 5px 0; border-radius: 10px; display: inline-block; max-width: 80%; word-wrap: break-word; }
-        .my-message { background: #d1f8d1; align-self: flex-end; text-align: right; }
-        .other-message { background: #e6e6e6; align-self: flex-start; text-align: left; }
-        
-        /* Стилі для зображень */
+        .my-message { background: #d1f8d1; text-align: right; }
+        .other-message { background: #e6e6e6; text-align: left; }
         .chat-img { max-width: 100px; cursor: pointer; transition: 0.3s; border-radius: 5px; }
         .chat-img:hover { opacity: 0.8; }
-        
-        /* Стилі для збільшеного зображення */
         .img-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); align-items: center; justify-content: center; }
         .img-modal img { max-width: 90%; max-height: 90%; }
-        
         #online-users { text-align: left; padding: 10px; border-bottom: 1px solid #ddd; }
         input, button { margin-top: 10px; padding: 10px; border: none; border-radius: 5px; }
         button { background: #5cb85c; color: white; cursor: pointer; }
@@ -30,25 +23,21 @@
 </head>
 <body>
 
-    <!-- Вікно введення ніку -->
     <div id="login-container" class="container">
         <h2>Введіть свій нік</h2>
         <input type="text" id="nickname" placeholder="Ваше ім'я">
         <button onclick="setNickname()">Увійти</button>
     </div>
 
-    <!-- Чат -->
     <div id="chat-container" class="container" style="display: none;">
         <h2>Онлайн-чат</h2>
         <div id="online-users"><strong>Онлайн:</strong> <span id="users-list">Немає користувачів</span></div>
         <div id="chat"></div>
-
         <input type="text" id="message" placeholder="Напишіть повідомлення...">
         <input type="file" id="imageInput" accept="image/*">
         <button onclick="sendMessage()">Відправити</button>
     </div>
 
-    <!-- Модальне вікно для перегляду зображень -->
     <div class="img-modal" id="imgModal" onclick="this.style.display='none'">
         <img id="modalImg">
     </div>
@@ -64,7 +53,7 @@
                 document.getElementById('login-container').style.display = 'none';
                 document.getElementById('chat-container').style.display = 'block';
 
-                socket = new WebSocket('ws://localhost:8080');
+                socket = new WebSocket('wss://your-server-url.com'); // Замініть на реальну адресу
 
                 socket.onopen = function() {
                     socket.send(JSON.stringify({ type: "connect", user: username }));
@@ -75,7 +64,7 @@
                     if (data.type === "message") {
                         addMessage(data.user, data.text);
                     } else if (data.type === "image") {
-                        addImage(data.user, data.text);
+                        addImage(data.user, data.image);
                     } else if (data.type === "users") {
                         updateUsers(data.users);
                     }
@@ -89,13 +78,15 @@
 
             if (input.value.trim()) {
                 socket.send(JSON.stringify({ type: "message", text: input.value }));
+                addMessage(username, input.value);
                 input.value = '';
             }
 
             if (fileInput.files.length > 0) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    socket.send(JSON.stringify({ type: "image", text: event.target.result }));
+                    socket.send(JSON.stringify({ type: "image", image: event.target.result }));
+                    addImage(username, event.target.result);
                 };
                 reader.readAsDataURL(fileInput.files[0]);
                 fileInput.value = '';
@@ -122,16 +113,13 @@
             chat.scrollTop = chat.scrollHeight;
         }
 
-        function openImage(src) {
-            const modal = document.getElementById('imgModal');
-            const modalImg = document.getElementById('modalImg');
-            modal.style.display = 'flex';
-            modalImg.src = src;
+        function updateUsers(users) {
+            document.getElementById('users-list').innerHTML = users.join(', ');
         }
 
-        function updateUsers(users) {
-            const usersList = document.getElementById('users-list');
-            usersList.innerHTML = users.length > 0 ? users.join(', ') : 'Немає користувачів';
+        function openImage(src) {
+            document.getElementById('imgModal').style.display = 'flex';
+            document.getElementById('modalImg').src = src;
         }
     </script>
 
