@@ -1,6 +1,7 @@
 const WebSocket = require('ws');
 
-const server = new WebSocket.Server({ port: 3000 });
+const PORT = process.env.PORT || 3000; // Динамічний порт або 3000 як резерв
+const server = new WebSocket.Server({ port: PORT });
 
 server.on('connection', socket => {
     console.log('Новий користувач підключився');
@@ -19,4 +20,4 @@ server.on('connection', socket => {
     });
 });
 
-console.log('Сервер WebSocket запущено на https://readder-ft6b.onrender.com/');
+console.log(`Сервер WebSocket запущено на порту ${PORT}`);
