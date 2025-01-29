@@ -23,16 +23,12 @@
         socket.onmessage = async function(event) {
             const chat = document.getElementById('chat');
 
-            // Перевіряємо, чи повідомлення у вигляді Blob
+            // Перевіряємо, чи повідомлення у форматі Blob
             if (event.data instanceof Blob) {
-                event.data.text().then(text => {
-                    chat.innerHTML += `<p>${text}</p>`;
-                });
+                event.data.text().then(text => addMessage(text));
             } else {
-                chat.innerHTML += `<p>${event.data}</p>`;
+                addMessage(event.data);
             }
-
-            chat.scrollTop = chat.scrollHeight;
         };
 
         function sendMessage() {
@@ -41,6 +37,12 @@
                 socket.send(input.value);
                 input.value = '';
             }
+        }
+
+        function addMessage(text) {
+            const chat = document.getElementById('chat');
+            chat.innerHTML += `<p>${text}</p>`;
+            chat.scrollTop = chat.scrollHeight;
         }
     </script>
 
