@@ -1,17 +1,17 @@
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
+const path = require("path");
 
 const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 const port = process.env.PORT || 10000;
 
-// Створюємо HTTP-сервер
-const server = http.createServer(app);
-
-// Підключаємо WebSocket до цього сервера
-const wss = new WebSocket.Server({ server });
-
 let users = new Map();
+
+// Роздаємо статичні файли
+app.use(express.static(path.join(__dirname, "public")));
 
 wss.on("connection", (ws) => {
     console.log("Новий користувач підключився.");
@@ -27,7 +27,7 @@ wss.on("connection", (ws) => {
             } else if (data.type === "message") {
                 broadcast({ type: "message", user: users.get(ws), text: data.text });
             } else if (data.type === "image") {
-                broadcast({ type: "image", user: users.get(ws), text: data.text });
+                broadcast({ type: "image", user: users.get(ws), image: data.image });
             }
         } catch (e) {
             console.error("Помилка у повідомленні:", e);
@@ -53,9 +53,6 @@ function broadcastUsers() {
     const userList = Array.from(users.values());
     broadcast({ type: "users", users: userList });
 }
-
-// Роздаємо статичні файли (наприклад, HTML, JS)
-app.use(express.static("public"));
 
 server.listen(port, () => {
     console.log(`Сервер WebSocket та HTTP працює на порту ${port}`);
