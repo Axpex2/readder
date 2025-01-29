@@ -1,7 +1,8 @@
 const WebSocket = require('ws');
-const wss = new WebSocket.Server({ port: 8080 });
+const port = process.env.PORT || 10000; // Використання порту з Render або локального
+const wss = new WebSocket.Server({ port });
 
-let users = new Map(); // Зберігаємо { socket: username }
+let users = new Map();
 
 wss.on('connection', (ws) => {
     console.log('Новий користувач підключився.');
@@ -31,7 +32,6 @@ wss.on('connection', (ws) => {
     });
 });
 
-// Функція для відправки всім підключеним користувачам
 function broadcast(data) {
     wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
@@ -40,10 +40,9 @@ function broadcast(data) {
     });
 }
 
-// Оновлення списку онлайн-користувачів
 function broadcastUsers() {
     const userList = Array.from(users.values());
     broadcast({ type: "users", users: userList });
 }
 
-console.log("Сервер WebSocket працює на ws://localhost:8080");
+console.log(`Сервер WebSocket працює на порту ${port}`);
