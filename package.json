@@ -5,13 +5,13 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "install": "yarn install"
+    "postinstall": "yarn install"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "ws": "^8.13.0"
+    "ws": "^8.17.0"
   },
   "engines": {
-    "node": "22.12.0"
+    "node": ">=16"
   }
 }
