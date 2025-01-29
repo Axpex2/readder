@@ -140,7 +140,7 @@
             document.getElementById("login-container").style.display = "none";
             document.getElementById("chat-container").style.display = "flex";
 
-            socket = new WebSocket("wss://your-server-url.com");
+            socket = new WebSocket("wss://your-server-url.com"); // ЗАМІНИ НА СВІЙ URL
 
             socket.onopen = () => {
                 socket.send(JSON.stringify({ type: "connect", user: username }));
@@ -162,9 +162,7 @@
             const text = input.value.trim();
             if (!text) return;
 
-            const messageData = { type: "message", text: text, user: username };
-            socket.send(JSON.stringify(messageData));
-
+            socket.send(JSON.stringify({ type: "message", text: text, user: username }));
             addMessage(username, text, true);
             input.value = "";
         }
