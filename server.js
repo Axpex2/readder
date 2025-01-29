@@ -1,49 +1,49 @@
 const WebSocket = require('ws');
-const express = require('express');
-const http = require('http');
-const path = require('path');
+const wss = new WebSocket.Server({ port: 8080 });
 
-const PORT = process.env.PORT || 10000;
-const app = express();
+let users = new Map(); // Зберігаємо { socket: username }
 
-// Статичні файли (index.html)
-app.use(express.static(path.join(__dirname, "public")));
+wss.on('connection', (ws) => {
+    console.log('Новий користувач підключився.');
 
-// HTTP-сервер
-const server = http.createServer(app);
+    ws.on('message', (message) => {
+        try {
+            const data = JSON.parse(message);
 
-// WebSocket-сервер
-const wss = new WebSocket.Server({ server });
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-wss.on('connection', ws => {
-    console.log('✅ Новий користувач підключився');
-
-    ws.on('message', message => {
-        // Конвертуємо Buffer у текст (UTF-8)
-        const textMessage = message.toString('utf-8');
-        console.log('📩 Отримано повідомлення:', textMessage);
-
-        // Відправляємо повідомлення ВСІМ підключеним клієнтам
-        wss.clients.forEach(client => {
-            if (client !== ws && client.readyState === WebSocket.OPEN) {
-                client.send(textMessage);
+            if (data.type === "connect") {
+                users.set(ws, data.user);
+                console.log(`${data.user} приєднався`);
+                broadcastUsers();
+            } else if (data.type === "message") {
+                broadcast({ type: "message", user: users.get(ws), text: data.text });
+            } else if (data.type === "image") {
+                broadcast({ type: "image", user: users.get(ws), text: data.text });
             }
-        });
-
-        // Відправляємо копію повідомлення назад тому, хто надіслав
-        ws.send(`Ви: ${textMessage}`);
+        } catch (e) {
+            console.error("Помилка у повідомленні:", e);
+        }
     });
 
     ws.on('close', () => {
-        console.log('❌ Користувач відключився');
+        console.log(`${users.get(ws)} відключився`);
+        users.delete(ws);
+        broadcastUsers();
     });
 });
 
-// Запускаємо сервер
-server.listen(PORT, () => {
-    console.log(`🚀 Сервер WebSocket запущено на порту ${PORT}`);
-});
+// Функція для відправки всім підключеним користувачам
+function broadcast(data) {
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(data));
+        }
+    });
+}
+
+// Оновлення списку онлайн-користувачів
+function broadcastUsers() {
+    const userList = Array.from(users.values());
+    broadcast({ type: "users", users: userList });
+}
+
+console.log("Сервер WebSocket працює на ws://localhost:8080");
