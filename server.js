@@ -10,7 +10,6 @@ const port = process.env.PORT || 10000;
 
 let users = new Map();
 
-// Роздаємо статичні файли
 app.use(express.static(path.join(__dirname, "public")));
 
 wss.on("connection", (ws) => {
