@@ -9,6 +9,9 @@ const port = process.env.PORT || 10000;
 
 let users = new Map();
 
+// Додаємо підтримку статичних файлів
+app.use(express.static(__dirname));
+
 wss.on("connection", (ws) => {
     console.log("🔵 Новий користувач підключився.");
 
@@ -49,6 +52,11 @@ function broadcastUsers() {
     const userList = Array.from(users.values());
     broadcast({ type: "users", users: userList });
 }
+
+// Додаємо маршрут для головної сторінки
+app.get("/", (req, res) => {
+    res.sendFile(__dirname + "/index.html");
+});
 
 server.listen(port, () => {
     console.log(`🚀 Сервер WebSocket працює на порту ${port}`);
