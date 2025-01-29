@@ -6,8 +6,17 @@ const path = require('path');
 const PORT = process.env.PORT || 10000;
 const app = express();
 
-// Роздача статичних файлів (щоб HTML відкривався)
-app.use(express.static(path.join(__dirname, "public")));
+// Перевіряємо, чи існує папка public
+const publicPath = path.join(__dirname, "public");
+
+// Перевіряємо, чи є index.html
+const fs = require("fs");
+if (!fs.existsSync(path.join(publicPath, "index.html"))) {
+    console.error("❌ Помилка: Файл public/index.html не знайдено!");
+}
+
+// Роздача статичних файлів
+app.use(express.static(publicPath));
 
 // HTTP-сервер
 const server = http.createServer(app);
@@ -16,14 +25,14 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
+    res.sendFile(path.join(publicPath, "index.html"));
 });
 
 wss.on('connection', ws => {
-    console.log('Новий користувач підключився');
+    console.log('✅ Новий користувач підключився');
 
     ws.on('message', message => {
-        console.log('Отримано повідомлення:', message);
+        console.log('📩 Отримано повідомлення:', message);
         wss.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN) {
                 client.send(message);
@@ -32,11 +41,11 @@ wss.on('connection', ws => {
     });
 
     ws.on('close', () => {
-        console.log('Користувач відключився');
+        console.log('❌ Користувач відключився');
     });
 });
 
 // Запуск сервера
 server.listen(PORT, () => {
-    console.log(`Сервер запущено на порту ${PORT}`);
+    console.log(`🚀 Сервер запущено на порту ${PORT}`);
 });
